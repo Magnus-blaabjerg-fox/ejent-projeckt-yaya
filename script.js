@@ -31,6 +31,11 @@ function createBoard() {
       }
 
       square.textContent = board[row][col];
+      if (isWhitePiece(board[row][col])) {
+        square.classList.add("white-piece");
+      } else if (isBlackPiece(board[row][col])) {
+        square.classList.add("black-piece");
+      }
 
       square.dataset.row = row;
       square.dataset.col = col;
@@ -108,11 +113,14 @@ function isLegalMove(fromRow, fromCol, toRow, toCol) {
     return isLegalPawnMove(fromRow, fromCol, toRow, toCol);
   }
 
+  if (piece === "♖" || piece === "♜") {
+    return isLegalRookMove(fromRow, fromCol, toRow, toCol);
+  }
   // De andre brikker må stadig flyttes frit
   // indtil vi implementerer deres regler
   return true;
 }
-
+// Pawn
 function isLegalPawnMove(fromRow, fromCol, toRow, toCol) {
   const piece = board[fromRow][fromCol];
 
@@ -153,6 +161,43 @@ function isLegalPawnMove(fromRow, fromCol, toRow, toCol) {
   }
 
   return false;
+}
+
+//Tårn
+
+function isLegalRookMove(fromRow, fromCol, toRow, toCol) {
+  // Tårnet skal enten flytte vandret
+  // eller lodret
+
+  const movingHorizontally = fromRow === toRow;
+  const movingVertically = fromCol === toCol;
+
+  if (!movingHorizontally && !movingVertically) {
+    return false;
+  }
+
+  // Tjek om der står en brik i vejen
+  if (movingHorizontally) {
+    const direction = toCol > fromCol ? 1 : -1;
+
+    for (let col = fromCol + direction; col !== toCol; col += direction) {
+      if (board[fromRow][col] !== "") {
+        return false;
+      }
+    }
+  }
+
+  if (movingVertically) {
+    const direction = toRow > fromRow ? 1 : -1;
+
+    for (let row = fromRow + direction; row !== toRow; row += direction) {
+      if (board[row][fromCol] !== "") {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 function changeTurn() {

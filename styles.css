@@ -36,9 +36,17 @@ body {
 
 .black-square {
     background-color: #b58863;
+    
 }
 
 .selected {
     outline: 5px solid yellow;
     outline-offset: -5px;
+}
+
+.white-piece{
+    color: white;
+}
+.black-piece{
+    color: black;
 }
