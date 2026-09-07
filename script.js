@@ -116,9 +116,11 @@ function isLegalMove(fromRow, fromCol, toRow, toCol) {
   if (piece === "♖" || piece === "♜") {
     return isLegalRookMove(fromRow, fromCol, toRow, toCol);
   }
-  // De andre brikker må stadig flyttes frit
-  // indtil vi implementerer deres regler
-  return true;
+
+  if (piece === "♗" || piece === "♝")
+    // De andre brikker må stadig flyttes frit
+    // indtil vi implementerer deres regler
+    return true;
 }
 // Pawn
 function isLegalPawnMove(fromRow, fromCol, toRow, toCol) {
