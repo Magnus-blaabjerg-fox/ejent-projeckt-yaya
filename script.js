@@ -170,7 +170,6 @@ function isWhitePiece(piece) {
 }
 
 function isBlackPiece(piece) {
-  
   return ["♚", "♛", "♜", "♝", "♞", "♟"].includes(piece);
 }
 
