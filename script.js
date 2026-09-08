@@ -124,6 +124,10 @@ function isLegalMove(fromRow, fromCol, toRow, toCol) {
   if (piece === "♘" || piece === "♞") {
     return isLegalKnightMove(fromRow, fromCol, toRow, toCol);
   }
+
+  if (piece === "♕" || piece === "♛") {
+    return isLegalQueenMove(fromRow, fromCol, toRow, toCol);
+  }
   // De andre brikker må stadig flyttes frit
   // indtil vi implementerer deres regler
   return true;
@@ -258,6 +262,17 @@ function isLegalKnightMove(fromRow, fromCol, toRow, toCol) {
   }
 
   return false;
+}
+
+function isLegalQueenMove(fromRow, fromCol, toRow, toCol) {
+  // Er det et tårn-træk?
+  const rookMove = isLegalRookMove(fromRow, fromCol, toRow, toCol);
+
+  // Er det et løber-træk?
+
+  const bishopMove = isLegalBishopMove(fromRow, fromCol, toRow, toCol);
+
+  return rookMove || bishopMove;
 }
 
 function changeTurn() {
