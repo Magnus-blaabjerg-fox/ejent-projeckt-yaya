@@ -128,6 +128,10 @@ function isLegalMove(fromRow, fromCol, toRow, toCol) {
   if (piece === "♕" || piece === "♛") {
     return isLegalQueenMove(fromRow, fromCol, toRow, toCol);
   }
+
+  if (piece === "♔" || piece === "♚") {
+    return isLegalKingMove(fromRow, fromCol, toRow, toCol);
+  }
   // De andre brikker må stadig flyttes frit
   // indtil vi implementerer deres regler
   return true;
@@ -264,6 +268,8 @@ function isLegalKnightMove(fromRow, fromCol, toRow, toCol) {
   return false;
 }
 
+// Dronningen
+
 function isLegalQueenMove(fromRow, fromCol, toRow, toCol) {
   // Er det et tårn-træk?
   const rookMove = isLegalRookMove(fromRow, fromCol, toRow, toCol);
@@ -273,6 +279,25 @@ function isLegalQueenMove(fromRow, fromCol, toRow, toCol) {
   const bishopMove = isLegalBishopMove(fromRow, fromCol, toRow, toCol);
 
   return rookMove || bishopMove;
+}
+
+// Kongen
+
+function isLegalKingMove(fromRow, fromCol, toRow, toCol) {
+  const rowDifference = Math.abs(toRow - fromRow);
+  const colDifference = Math.abs(toCol - fromCol);
+
+  // Kongen må højst gå 1 felt
+
+  if (
+    rowDifference <= 1 &&
+    colDifference <= 1 &&
+    !(rowDifference === 0 && colDifference === 0)
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 function changeTurn() {
