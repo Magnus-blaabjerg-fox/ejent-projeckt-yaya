@@ -75,6 +75,7 @@ function squareClicked(row, col) {
 
     createBoard();
     highlightSelectedSquare();
+    highlightPossibleMoves();
 
     return;
   }
@@ -329,6 +330,27 @@ function highlightSelectedSquare() {
       square.classList.add("selected");
     }
   });
+
+  function highlightPossibleMoves() {
+    const squares = document.querySelectorAll(".square");
+
+    squares.forEach((square) => {
+      const row = Number(square.dataset.row);
+      const col = Number(square.dataset.col);
+
+      if (isLegalMove(selectedSquare.row, selectedSquare.col, row, col)) {
+        const targetPiece = board[row][col];
+        const selectedPiece = board[selectedSquare.row][selectedSquare.col];
+        // Man må ikke flytte til et felt med
+        // sin egen brik
+
+        if (targetPiece ==="" || isWhitePiece(targetPiece) !== isWhitePiece(selectedPiece)){
+          square.classList.add("possible-move")
+        }
+      }
+    });
+  }
+  highlightPossibleMoves();
 }
 
 createBoard();
