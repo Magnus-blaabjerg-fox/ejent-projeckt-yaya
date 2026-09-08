@@ -344,8 +344,11 @@ function highlightSelectedSquare() {
         // Man må ikke flytte til et felt med
         // sin egen brik
 
-        if (targetPiece ==="" || isWhitePiece(targetPiece) !== isWhitePiece(selectedPiece)){
-          square.classList.add("possible-move")
+        if (
+          targetPiece === "" ||
+          isWhitePiece(targetPiece) !== isWhitePiece(selectedPiece)
+        ) {
+          square.classList.add("possible-move");
         }
       }
     });
