@@ -202,6 +202,33 @@ function isLegalRookMove(fromRow, fromCol, toRow, toCol) {
   return true;
 }
 
+function isLegalBishopMove(fromRow, fromCol, toRow, toCol) {
+  const rowDifference = Math.abs(toRow - fromRow);
+  const colDifference = Math.abs(toCol - fromCol);
+
+  // Løberen skal bevæge sig lige langt
+  // i rækker og kolonner
+
+  if (rowDifference !== colDifference) {
+    return false;
+  }
+
+  //find retningen
+
+  const rowDirection = toRow > fromRow ? 1 : -1;
+  const colDirection = toCol > fromCol ? 1 : -1;
+
+  let row = fromRow + rowDirection;
+  let col = fromCol + colDirection;
+
+  // Tjek alle felter mellem start og slut
+
+  while (row !== toRow && col !== toCol) {
+    
+  }
+
+}
+
 function changeTurn() {
   if (currentPlayer === "white") {
     currentPlayer = "black";
