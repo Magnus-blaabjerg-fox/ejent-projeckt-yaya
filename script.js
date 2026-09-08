@@ -117,10 +117,16 @@ function isLegalMove(fromRow, fromCol, toRow, toCol) {
     return isLegalRookMove(fromRow, fromCol, toRow, toCol);
   }
 
-  if (piece === "♗" || piece === "♝")
-    // De andre brikker må stadig flyttes frit
-    // indtil vi implementerer deres regler
-    return true;
+  if (piece === "♗" || piece === "♝") {
+    return isLegalBishopMove(fromRow, fromCol, toRow, toCol);
+  }
+
+  if (piece === "♘" || piece === "♞") {
+    return isLegalKnightMove(fromRow, fromCol, toRow, toCol);
+  }
+  // De andre brikker må stadig flyttes frit
+  // indtil vi implementerer deres regler
+  return true;
 }
 // Pawn
 function isLegalPawnMove(fromRow, fromCol, toRow, toCol) {
@@ -202,19 +208,19 @@ function isLegalRookMove(fromRow, fromCol, toRow, toCol) {
   return true;
 }
 
+// Løber
+
 function isLegalBishopMove(fromRow, fromCol, toRow, toCol) {
   const rowDifference = Math.abs(toRow - fromRow);
   const colDifference = Math.abs(toCol - fromCol);
 
   // Løberen skal bevæge sig lige langt
   // i rækker og kolonner
-
   if (rowDifference !== colDifference) {
     return false;
   }
 
-  //find retningen
-
+  // Find retningen
   const rowDirection = toRow > fromRow ? 1 : -1;
   const colDirection = toCol > fromCol ? 1 : -1;
 
@@ -222,11 +228,36 @@ function isLegalBishopMove(fromRow, fromCol, toRow, toCol) {
   let col = fromCol + colDirection;
 
   // Tjek alle felter mellem start og slut
-
   while (row !== toRow && col !== toCol) {
-    
+    if (board[row][col] !== "") {
+      return false;
+    }
+
+    row += rowDirection;
+    col += colDirection;
   }
 
+  return true;
+}
+
+// Springer
+
+function isLegalKnightMove(fromRow, fromCol, toRow, toCol) {
+  const rowDifference = Math.abs(toRow - fromRow);
+  const colDifference = Math.abs(toCol - fromCol);
+
+  // Springeren går:
+  // 2 felter i én retning
+  // og 1 felt til siden
+
+  if (
+    (rowDifference === 2 && colDifference === 1) ||
+    (rowDifference === 1 && colDifference === 2)
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 function changeTurn() {
