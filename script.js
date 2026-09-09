@@ -15,6 +15,10 @@ const board = [
   ["♖", "♘", "♗", "♕", "♔", "♗", "♘", "♖"],
 ];
 
+// =====================================
+// LAV SKAKBRÆT
+// =====================================
+
 function createBoard() {
   chessboard.innerHTML = "";
 
@@ -37,6 +41,8 @@ function createBoard() {
         square.classList.add("black-piece");
       }
 
+      
+
       square.dataset.row = row;
       square.dataset.col = col;
 
@@ -49,21 +55,25 @@ function createBoard() {
   }
 }
 
+// =====================================
+// KLIK PÅ FELT
+// =====================================
+
 function squareClicked(row, col) {
   const piece = board[row][col];
 
-  // Hvis vi ikke allerede har valgt en brik
+  // Hvis ingen brik er valgt
   if (selectedSquare === null) {
-    // Der skal være en brik på feltet
     if (piece === "") {
       return;
     }
 
-    // Man må kun vælge sin egen farve
+    // Hvid må kun vælge hvid
     if (currentPlayer === "white" && isBlackPiece(piece)) {
       return;
     }
 
+    // Sort må kun vælge sort
     if (currentPlayer === "black" && isWhitePiece(piece)) {
       return;
     }
@@ -80,25 +90,49 @@ function squareClicked(row, col) {
     return;
   }
 
-  // Vi har allerede valgt en brik
   const fromRow = selectedSquare.row;
   const fromCol = selectedSquare.col;
 
   const selectedPiece = board[fromRow][fromCol];
 
-  // Undgå at slå sine egne brikker
+  // Hvis man klikker på sin egen brik
   if (piece !== "" && isWhitePiece(selectedPiece) === isWhitePiece(piece)) {
     selectedSquare = null;
+
     createBoard();
+
     return;
   }
 
-  // Tjek om trækket er lovligt
+  // Er trækket lovligt?
   if (isLegalMove(fromRow, fromCol, row, col)) {
+    // Lav en midlertidig kopi af brættet
+    const oldBoard = copyBoard();
+
     board[row][col] = selectedPiece;
     board[fromRow][fromCol] = "";
 
-    changeTurn();
+    // Find ud af hvilken farve kongen har
+    const playerColor = currentPlayer;
+
+    // Må spilleren lave dette træk?
+    if (isKingInCheck(playerColor)) {
+      // Fortryd trækket
+      restoreBoard(oldBoard);
+
+      alert("Du må ikke sætte din egen konge i skak!");
+    } else {
+      changeTurn();
+
+      // Tjek om modstanderen er i skak
+      const opponent = currentPlayer === "white" ? "black" : "white";
+
+      if (isKingInCheck(opponent)) {
+        turnText.textContent += " - SKAK!";
+
+        alert("SKAK!");
+      }
+    }
   }
 
   selectedSquare = null;
@@ -106,38 +140,58 @@ function squareClicked(row, col) {
   createBoard();
 }
 
+// =====================================
+// LOVLIGE TRÆK
+// =====================================
+
 function isLegalMove(fromRow, fromCol, toRow, toCol) {
   const piece = board[fromRow][fromCol];
+  if (fromRow === toRow && fromCol === toCol) {
+    return false;
+  }
 
-  // Vi starter med kun at implementere bønder
+  if (piece === "") {
+    return false;
+  }
+
+  // BONDE
   if (piece === "♙" || piece === "♟") {
     return isLegalPawnMove(fromRow, fromCol, toRow, toCol);
   }
 
+  // TÅRN
   if (piece === "♖" || piece === "♜") {
     return isLegalRookMove(fromRow, fromCol, toRow, toCol);
   }
 
+  // LØBER
   if (piece === "♗" || piece === "♝") {
     return isLegalBishopMove(fromRow, fromCol, toRow, toCol);
   }
 
+  // SPRINGER
   if (piece === "♘" || piece === "♞") {
     return isLegalKnightMove(fromRow, fromCol, toRow, toCol);
   }
 
+  // DRONNING
   if (piece === "♕" || piece === "♛") {
     return isLegalQueenMove(fromRow, fromCol, toRow, toCol);
   }
 
+  // KONGE
   if (piece === "♔" || piece === "♚") {
     return isLegalKingMove(fromRow, fromCol, toRow, toCol);
   }
-  // De andre brikker må stadig flyttes frit
-  // indtil vi implementerer deres regler
-  return true;
+   
+
+  return false;
 }
-// Pawn
+
+// =====================================
+// BONDE
+// =====================================
+
 function isLegalPawnMove(fromRow, fromCol, toRow, toCol) {
   const piece = board[fromRow][fromCol];
 
@@ -147,7 +201,7 @@ function isLegalPawnMove(fromRow, fromCol, toRow, toCol) {
 
   const targetPiece = board[toRow][toCol];
 
-  // BONDE GÅR 1 FELT FREM
+  // Ét felt frem
   if (
     toCol === fromCol &&
     toRow === fromRow + direction &&
@@ -156,7 +210,7 @@ function isLegalPawnMove(fromRow, fromCol, toRow, toCol) {
     return true;
   }
 
-  // BONDE GÅR 2 FELTER FRA START
+  // To felter fra start
   if (
     toCol === fromCol &&
     fromRow === startRow &&
@@ -167,7 +221,7 @@ function isLegalPawnMove(fromRow, fromCol, toRow, toCol) {
     return true;
   }
 
-  // BONDE SLÅR DIAGONALT
+  // Slå diagonalt
   if (
     Math.abs(toCol - fromCol) === 1 &&
     toRow === fromRow + direction &&
@@ -180,21 +234,19 @@ function isLegalPawnMove(fromRow, fromCol, toRow, toCol) {
   return false;
 }
 
-//Tårn
+// =====================================
+// TÅRN
+// =====================================
 
 function isLegalRookMove(fromRow, fromCol, toRow, toCol) {
-  // Tårnet skal enten flytte vandret
-  // eller lodret
+  const horizontal = fromRow === toRow;
+  const vertical = fromCol === toCol;
 
-  const movingHorizontally = fromRow === toRow;
-  const movingVertically = fromCol === toCol;
-
-  if (!movingHorizontally && !movingVertically) {
+  if (!horizontal && !vertical) {
     return false;
   }
 
-  // Tjek om der står en brik i vejen
-  if (movingHorizontally) {
+  if (horizontal) {
     const direction = toCol > fromCol ? 1 : -1;
 
     for (let col = fromCol + direction; col !== toCol; col += direction) {
@@ -204,7 +256,7 @@ function isLegalRookMove(fromRow, fromCol, toRow, toCol) {
     }
   }
 
-  if (movingVertically) {
+  if (vertical) {
     const direction = toRow > fromRow ? 1 : -1;
 
     for (let row = fromRow + direction; row !== toRow; row += direction) {
@@ -217,26 +269,24 @@ function isLegalRookMove(fromRow, fromCol, toRow, toCol) {
   return true;
 }
 
-// Løber
+// =====================================
+// LØBER
+// =====================================
 
 function isLegalBishopMove(fromRow, fromCol, toRow, toCol) {
   const rowDifference = Math.abs(toRow - fromRow);
   const colDifference = Math.abs(toCol - fromCol);
 
-  // Løberen skal bevæge sig lige langt
-  // i rækker og kolonner
   if (rowDifference !== colDifference) {
     return false;
   }
 
-  // Find retningen
   const rowDirection = toRow > fromRow ? 1 : -1;
   const colDirection = toCol > fromCol ? 1 : -1;
 
   let row = fromRow + rowDirection;
   let col = fromCol + colDirection;
 
-  // Tjek alle felter mellem start og slut
   while (row !== toRow && col !== toCol) {
     if (board[row][col] !== "") {
       return false;
@@ -249,57 +299,172 @@ function isLegalBishopMove(fromRow, fromCol, toRow, toCol) {
   return true;
 }
 
-// Springer
+// =====================================
+// SPRINGER
+// =====================================
 
 function isLegalKnightMove(fromRow, fromCol, toRow, toCol) {
   const rowDifference = Math.abs(toRow - fromRow);
   const colDifference = Math.abs(toCol - fromCol);
 
-  // Springeren går:
-  // 2 felter i én retning
-  // og 1 felt til siden
-
-  if (
+  return (
     (rowDifference === 2 && colDifference === 1) ||
     (rowDifference === 1 && colDifference === 2)
-  ) {
-    return true;
-  }
-
-  return false;
+  );
 }
 
-// Dronningen
+// =====================================
+// DRONNING
+// =====================================
 
 function isLegalQueenMove(fromRow, fromCol, toRow, toCol) {
-  // Er det et tårn-træk?
-  const rookMove = isLegalRookMove(fromRow, fromCol, toRow, toCol);
-
-  // Er det et løber-træk?
-
-  const bishopMove = isLegalBishopMove(fromRow, fromCol, toRow, toCol);
-
-  return rookMove || bishopMove;
+  return (
+    isLegalRookMove(fromRow, fromCol, toRow, toCol) ||
+    isLegalBishopMove(fromRow, fromCol, toRow, toCol)
+  );
 }
 
-// Kongen
+// =====================================
+// KONGE
+// =====================================
 
 function isLegalKingMove(fromRow, fromCol, toRow, toCol) {
   const rowDifference = Math.abs(toRow - fromRow);
   const colDifference = Math.abs(toCol - fromCol);
 
-  // Kongen må højst gå 1 felt
-
-  if (
+  return (
     rowDifference <= 1 &&
     colDifference <= 1 &&
     !(rowDifference === 0 && colDifference === 0)
-  ) {
-    return true;
+  );
+}
+
+// =====================================
+// FIND KONGEN
+// =====================================
+
+function findKing(color) {
+  const king = color === "white" ? "♔" : "♚";
+
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      if (board[row][col] === king) {
+        return {
+          row: row,
+          col: col,
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
+// =====================================
+// ER KONGEN I SKAK?
+// =====================================
+
+function isKingInCheck(color) {
+  const kingPosition = findKing(color);
+
+  if (kingPosition === null) {
+    return false;
+  }
+
+  const enemyColor = color === "white" ? "black" : "white";
+
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const piece = board[row][col];
+
+      if (piece === "") {
+        continue;
+      }
+
+      if (enemyColor === "white" && !isWhitePiece(piece)) {
+        continue;
+      }
+
+      if (enemyColor === "black" && !isBlackPiece(piece)) {
+        continue;
+      }
+
+      if (isAttackingSquare(row, col, kingPosition.row, kingPosition.col)) {
+        return true;
+      }
+    }
   }
 
   return false;
 }
+
+// =====================================
+// ANGREBER EN BRik ET FELT?
+// =====================================
+
+function isAttackingSquare(fromRow, fromCol, toRow, toCol) {
+  const piece = board[fromRow][fromCol];
+
+  // Bonde
+  if (piece === "♙") {
+    return toRow === fromRow - 1 && Math.abs(toCol - fromCol) === 1;
+  }
+
+  if (piece === "♟") {
+    return toRow === fromRow + 1 && Math.abs(toCol - fromCol) === 1;
+  }
+
+  // Tårn
+  if (piece === "♖" || piece === "♜") {
+    return isLegalRookMove(fromRow, fromCol, toRow, toCol);
+  }
+
+  // Løber
+  if (piece === "♗" || piece === "♝") {
+    return isLegalBishopMove(fromRow, fromCol, toRow, toCol);
+  }
+
+  // Springer
+  if (piece === "♘" || piece === "♞") {
+    return isLegalKnightMove(fromRow, fromCol, toRow, toCol);
+  }
+
+  // Dronning
+  if (piece === "♕" || piece === "♛") {
+    return isLegalQueenMove(fromRow, fromCol, toRow, toCol);
+  }
+
+  // Konge
+  if (piece === "♔" || piece === "♚") {
+    return isLegalKingMove(fromRow, fromCol, toRow, toCol);
+  }
+
+  return false;
+}
+
+// =====================================
+// LAV KOPI AF BRÆTTET
+// =====================================
+
+function copyBoard() {
+  return board.map((row) => [...row]);
+}
+
+// =====================================
+// GENDAN BRÆTTET
+// =====================================
+
+function restoreBoard(oldBoard) {
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      board[row][col] = oldBoard[row][col];
+    }
+  }
+}
+
+// =====================================
+// SKIFT SPILLER
+// =====================================
 
 function changeTurn() {
   if (currentPlayer === "white") {
@@ -311,6 +476,10 @@ function changeTurn() {
   }
 }
 
+// =====================================
+// FARVER
+// =====================================
+
 function isWhitePiece(piece) {
   return ["♔", "♕", "♖", "♗", "♘", "♙"].includes(piece);
 }
@@ -318,6 +487,10 @@ function isWhitePiece(piece) {
 function isBlackPiece(piece) {
   return ["♚", "♛", "♜", "♝", "♞", "♟"].includes(piece);
 }
+
+// =====================================
+// MARKER VALGT BRik
+// =====================================
 
 function highlightSelectedSquare() {
   const squares = document.querySelectorAll(".square");
@@ -330,30 +503,36 @@ function highlightSelectedSquare() {
       square.classList.add("selected");
     }
   });
-
-  function highlightPossibleMoves() {
-    const squares = document.querySelectorAll(".square");
-
-    squares.forEach((square) => {
-      const row = Number(square.dataset.row);
-      const col = Number(square.dataset.col);
-
-      if (isLegalMove(selectedSquare.row, selectedSquare.col, row, col)) {
-        const targetPiece = board[row][col];
-        const selectedPiece = board[selectedSquare.row][selectedSquare.col];
-        // Man må ikke flytte til et felt med
-        // sin egen brik
-
-        if (
-          targetPiece === "" ||
-          isWhitePiece(targetPiece) !== isWhitePiece(selectedPiece)
-        ) {
-          square.classList.add("possible-move");
-        }
-      }
-    });
-  }
-  highlightPossibleMoves();
 }
+
+// =====================================
+// MARKER MULIGE TRÆK
+// =====================================
+
+function highlightPossibleMoves() {
+  const squares = document.querySelectorAll(".square");
+
+  squares.forEach((square) => {
+    const row = Number(square.dataset.row);
+    const col = Number(square.dataset.col);
+
+    if (isLegalMove(selectedSquare.row, selectedSquare.col, row, col)) {
+      const targetPiece = board[row][col];
+
+      const selectedPiece = board[selectedSquare.row][selectedSquare.col];
+
+      if (
+        targetPiece === "" ||
+        isWhitePiece(targetPiece) !== isWhitePiece(selectedPiece)
+      ) {
+        square.classList.add("possible-move");
+      }
+    }
+  });
+}
+
+// =====================================
+// START SPILLET
+// =====================================
 
 createBoard();
