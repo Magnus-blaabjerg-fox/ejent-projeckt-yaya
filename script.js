@@ -41,8 +41,6 @@ function createBoard() {
         square.classList.add("black-piece");
       }
 
-      
-
       square.dataset.row = row;
       square.dataset.col = col;
 
@@ -127,7 +125,11 @@ function squareClicked(row, col) {
       // Tjek om modstanderen er i skak
       const opponent = currentPlayer === "white" ? "black" : "white";
 
-      if (isKingInCheck(opponent)) {
+      if (isCheckmate(opponent)) {
+        turnText.textContent = "SKAKMAT!";
+
+        alert("SKAKMAT! " + currentPlayer + " vinder!");
+      } else if (isKingInCheck(opponent)) {
         turnText.textContent += " - SKAK!";
 
         alert("SKAK!");
@@ -183,7 +185,6 @@ function isLegalMove(fromRow, fromCol, toRow, toCol) {
   if (piece === "♔" || piece === "♚") {
     return isLegalKingMove(fromRow, fromCol, toRow, toCol);
   }
-   
 
   return false;
 }
@@ -454,12 +455,71 @@ function copyBoard() {
 // GENDAN BRÆTTET
 // =====================================
 
-function restoreBoard(oldBoard) {
-  for (let row = 0; row < 8; row++) {
-    for (let col = 0; col < 8; col++) {
-      board[row][col] = oldBoard[row][col];
+function hasLegalMove(color) {
+  for (let fromRow = 0; fromRow < 8; fromRow++) {
+    for (let fromCol = 0; fromCol < 8; fromCol++) {
+      const piece = board[fromRow][fromCol];
+
+      if (piece === "") {
+        continue;
+      }
+
+      // Er det spillerens egen brik?
+      if (color === "white" && !isWhitePiece(piece)) {
+        continue;
+      }
+
+      if (color === "black" && !isBlackPiece(piece)) {
+        continue;
+      }
+
+      // Prøv alle felter på brættet
+      for (let toRow = 0; toRow < 8; toRow++) {
+        for (let toCol = 0; toCol < 8; toCol++) {
+          const targetPiece = board[toRow][toCol];
+
+          // Man må ikke slå sin egen brik
+          if (
+            targetPiece !== "" &&
+            isWhitePiece(piece) === isWhitePiece(targetPiece)
+          ) {
+            continue;
+          }
+
+          if (!isLegalMove(fromRow, fromCol, toRow, toCol)) {
+            continue;
+          }
+
+          // Gem brættet
+          const oldBoard = copyBoard();
+
+          // Lav forsøgs-trækket
+          board[toRow][toCol] = piece;
+          board[fromRow][fromCol] = "";
+
+          // Se om kongen stadig er i skak
+          const stillInCheck = isKingInCheck(color);
+
+          // Gendan brættet
+          restoreBoard(oldBoard);
+
+          // Hvis dette træk virker,
+          // har spilleren mindst ét lovligt træk
+          if (!stillInCheck) {
+            return true;
+          }
+        }
+      }
     }
   }
+
+  return false;
+}
+// =====================================
+// Checkmate
+// =====================================
+function isCheckmate(color) {
+  return isKingInCheck(color) && !hasLegalMove(color);
 }
 
 // =====================================
