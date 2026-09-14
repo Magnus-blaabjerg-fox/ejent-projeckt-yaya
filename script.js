@@ -80,6 +80,7 @@ function squareClicked(row, col) {
       row: row,
       col: col,
     };
+    
 
     createBoard();
     highlightSelectedSquare();
@@ -123,12 +124,14 @@ function squareClicked(row, col) {
       changeTurn();
 
       // Tjek om modstanderen er i skak
-      const opponent = currentPlayer === "white" ? "black" : "white";
+      const opponent = currentPlayer;
 
       if (isCheckmate(opponent)) {
         turnText.textContent = "SKAKMAT!";
 
-        alert("SKAKMAT! " + currentPlayer + " vinder!");
+        alert(
+          "SKAKMAT! " + (opponent === "white" ? "Sort" : "Hvid") + " vinder!",
+        );
       } else if (isKingInCheck(opponent)) {
         turnText.textContent += " - SKAK!";
 
@@ -451,6 +454,14 @@ function copyBoard() {
   return board.map((row) => [...row]);
 }
 
+function restoreBoard(oldBoard) {
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      board[row][col] = oldBoard[row][col];
+    }
+  }
+}
+
 // =====================================
 // GENDAN BRÆTTET
 // =====================================
@@ -515,6 +526,7 @@ function hasLegalMove(color) {
 
   return false;
 }
+
 // =====================================
 // Checkmate
 // =====================================
