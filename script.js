@@ -4,6 +4,15 @@ const turnText = document.getElementById("turn");
 let selectedSquare = null;
 let currentPlayer = "white";
 
+let whiteKingMoved = false;
+let blackKingMoved = false;
+
+let whiteRookLeftMoved = false;
+let whiteRookRightMoved = false;
+
+let blackRookLeftMoved = false;
+let blackRookRightMoved = false;
+
 const board = [
   ["♜", "♞", "♝", "♛", "♚", "♝", "♞", "♜"],
   ["♟", "♟", "♟", "♟", "♟", "♟", "♟", "♟"],
@@ -109,6 +118,32 @@ function squareClicked(row, col) {
 
     board[row][col] = selectedPiece;
     board[fromRow][fromCol] = "";
+
+    // Flyt tårnet ved rokade
+    if (selectedPiece === "♔" && fromRow === 7 && fromCol === 4) {
+      if (col === 6) {
+        board[7][5] = board[7][7];
+        board[7][7] = "";
+      }
+
+      if (col === 2) {
+        board[7][3] = board[7][0];
+        board[7][0] = "";
+      }
+    }
+
+    if (selectedPiece === "♚" && fromRow === 0 && fromCol === 4) {
+      if (col === 6) {
+        board[0][5] = board[0][7];
+        board[0][7] = "";
+      }
+
+      if (col === 2) {
+        board[0][3] = board[0][0];
+        board[0][0] = "";
+      }
+    }
+    
 
     // Bondeforfremmelse
     if (selectedPiece === "♙" && row === 0) {
@@ -218,7 +253,10 @@ function isLegalMove(fromRow, fromCol, toRow, toCol) {
 
   // KONGE
   if (piece === "♔" || piece === "♚") {
-    return isLegalKingMove(fromRow, fromCol, toRow, toCol);
+    return (
+      isLegalKingMove(fromRow, fromCol, toRow, toCol) ||
+      isLegalCastle(fromRow, fromCol, toRow, toCol)
+    );
   }
 
   return false;
@@ -373,6 +411,62 @@ function isLegalKingMove(fromRow, fromCol, toRow, toCol) {
     colDifference <= 1 &&
     !(rowDifference === 0 && colDifference === 0)
   );
+}
+
+function isLegalCastle(fromRow, fromCol, toRow, toCol) {
+  // Hvid rokade
+  if (fromRow === 7 && fromCol === 4 && toRow === 7) {
+    // Kort rokade
+    if (
+      toCol === 6 &&
+      !whiteKingMoved &&
+      !whiteRookRightMoved &&
+      board[7][5] === "" &&
+      board[7][6] === ""
+    ) {
+      return true;
+    }
+    // Lang rokade
+
+    if (
+      toCol === 2 &&
+      !whiteKingMoved &&
+      !whiteRookLeftMoved &&
+      board[7][1] === "" &&
+      board[7][2] === "" &&
+      board[7][3] === ""
+    ) {
+      return true;
+    }
+  }
+
+  // Sort rokade
+  if (fromRow === 0 && fromCol === 4 && toRow === 0) {
+    // Kort rokade
+    if (
+      toCol === 6 &&
+      !blackKingMoved &&
+      !blackRookRightMoved &&
+      board[0][5] === "" &&
+      board[0][6] === ""
+    ) {
+      return true;
+    }
+
+    // Lang rokade
+    if (
+      toCol === 2 &&
+      !blackKingMoved &&
+      !blackRookLeftMoved &&
+      board[0][1] === "" &&
+      board[0][2] === "" &&
+      board[0][3] === ""
+    ) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 // =====================================
