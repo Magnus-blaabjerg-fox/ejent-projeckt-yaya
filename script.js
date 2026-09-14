@@ -414,9 +414,14 @@ function isLegalKingMove(fromRow, fromCol, toRow, toCol) {
 }
 
 function isLegalCastle(fromRow, fromCol, toRow, toCol) {
-  // Hvid rokade
+  // HVID
   if (fromRow === 7 && fromCol === 4 && toRow === 7) {
-    // Kort rokade
+    // Kongen må ikke stå i skak
+    if (isKingInCheck("white")) {
+      return false;
+    }
+
+    // KORT ROKADE
     if (
       toCol === 6 &&
       !whiteKingMoved &&
@@ -424,10 +429,32 @@ function isLegalCastle(fromRow, fromCol, toRow, toCol) {
       board[7][5] === "" &&
       board[7][6] === ""
     ) {
-      return true;
-    }
-    // Lang rokade
+      // Feltet f1 må ikke være i skak
+      board[7][5] = "♔";
+      board[7][4] = "";
 
+      const throughCheck = isKingInCheck("white");
+
+      board[7][4] = "♔";
+      board[7][5] = "";
+
+      if (throughCheck) {
+        return false;
+      }
+
+      // Feltet g1 må heller ikke være i skak
+      board[7][6] = "♔";
+      board[7][4] = "";
+
+      const endInCheck = isKingInCheck("white");
+
+      board[7][4] = "♔";
+      board[7][6] = "";
+
+      return !endInCheck;
+    }
+
+    // LANG ROKADE
     if (
       toCol === 2 &&
       !whiteKingMoved &&
@@ -436,13 +463,40 @@ function isLegalCastle(fromRow, fromCol, toRow, toCol) {
       board[7][2] === "" &&
       board[7][3] === ""
     ) {
-      return true;
+      // Feltet d1 må ikke være i skak
+      board[7][3] = "♔";
+      board[7][4] = "";
+
+      const throughCheck = isKingInCheck("white");
+
+      board[7][4] = "♔";
+      board[7][3] = "";
+
+      if (throughCheck) {
+        return false;
+      }
+
+      // Feltet c1 må ikke være i skak
+      board[7][2] = "♔";
+      board[7][4] = "";
+
+      const endInCheck = isKingInCheck("white");
+
+      board[7][4] = "♔";
+      board[7][2] = "";
+
+      return !endInCheck;
     }
   }
 
-  // Sort rokade
+  // SORT
   if (fromRow === 0 && fromCol === 4 && toRow === 0) {
-    // Kort rokade
+    // Kongen må ikke stå i skak
+    if (isKingInCheck("black")) {
+      return false;
+    }
+
+    // KORT ROKADE
     if (
       toCol === 6 &&
       !blackKingMoved &&
@@ -450,10 +504,30 @@ function isLegalCastle(fromRow, fromCol, toRow, toCol) {
       board[0][5] === "" &&
       board[0][6] === ""
     ) {
-      return true;
+      board[0][5] = "♚";
+      board[0][4] = "";
+
+      const throughCheck = isKingInCheck("black");
+
+      board[0][4] = "♚";
+      board[0][5] = "";
+
+      if (throughCheck) {
+        return false;
+      }
+
+      board[0][6] = "♚";
+      board[0][4] = "";
+
+      const endInCheck = isKingInCheck("black");
+
+      board[0][4] = "♚";
+      board[0][6] = "";
+
+      return !endInCheck;
     }
 
-    // Lang rokade
+    // LANG ROKADE
     if (
       toCol === 2 &&
       !blackKingMoved &&
@@ -462,7 +536,27 @@ function isLegalCastle(fromRow, fromCol, toRow, toCol) {
       board[0][2] === "" &&
       board[0][3] === ""
     ) {
-      return true;
+      board[0][3] = "♚";
+      board[0][4] = "";
+
+      const throughCheck = isKingInCheck("black");
+
+      board[0][4] = "♚";
+      board[0][3] = "";
+
+      if (throughCheck) {
+        return false;
+      }
+
+      board[0][2] = "♚";
+      board[0][4] = "";
+
+      const endInCheck = isKingInCheck("black");
+
+      board[0][4] = "♚";
+      board[0][2] = "";
+
+      return !endInCheck;
     }
   }
 
