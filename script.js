@@ -80,7 +80,6 @@ function squareClicked(row, col) {
       row: row,
       col: col,
     };
-    
 
     createBoard();
     highlightSelectedSquare();
@@ -110,6 +109,39 @@ function squareClicked(row, col) {
 
     board[row][col] = selectedPiece;
     board[fromRow][fromCol] = "";
+
+    // Bondeforfremmelse
+    if (selectedPiece === "♙" && row === 0) {
+      const choice = prompt(
+        "Vælg brik: D = Dronning, T = Tårn, L = Løber, S = Springer",
+      );
+
+      if (choice === "T" || choice === "t") {
+        board[row][col] = "♖";
+      } else if (choice === "L" || choice === "l") {
+        board[row][col] = "♗";
+      } else if (choice === "S" || choice === "s") {
+        board[row][col] = "♘";
+      } else {
+        board[row][col] = "♕";
+      }
+    }
+
+    if (selectedPiece === "♟" && row === 7) {
+      const choice = prompt(
+        "Vælg brik: D = Dronning, T = Tårn, L = Løber, S = Springer",
+      );
+
+      if (choice === "T" || choice === "t") {
+        board[row][col] = "♜";
+      } else if (choice === "L" || choice === "l") {
+        board[row][col] = "♝";
+      } else if (choice === "S" || choice === "s") {
+        board[row][col] = "♞";
+      } else {
+        board[row][col] = "♛";
+      }
+    }
 
     // Find ud af hvilken farve kongen har
     const playerColor = currentPlayer;
