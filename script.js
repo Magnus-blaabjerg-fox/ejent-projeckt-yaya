@@ -13,6 +13,10 @@ let whiteRookRightMoved = false;
 let blackRookLeftMoved = false;
 let blackRookRightMoved = false;
 
+// En passant
+let enPassantTarget = null;
+let enPassantPawn = null;
+
 const board = [
   ["♜", "♞", "♝", "♛", "♚", "♝", "♞", "♜"],
   ["♟", "♟", "♟", "♟", "♟", "♟", "♟", "♟"],
@@ -44,6 +48,7 @@ function createBoard() {
       }
 
       square.textContent = board[row][col];
+
       if (isWhitePiece(board[row][col])) {
         square.classList.add("white-piece");
       } else if (isBlackPiece(board[row][col])) {
@@ -116,16 +121,60 @@ function squareClicked(row, col) {
     // Lav en midlertidig kopi af brættet
     const oldBoard = copyBoard();
 
+    // Gem den gamle en passant-status
+    const oldEnPassantTarget = enPassantTarget;
+    const oldEnPassantPawn = enPassantPawn;
+
+    // Er dette et en passant-træk?
+    const isEnPassantMove =
+      (selectedPiece === "♙" || selectedPiece === "♟") &&
+      enPassantTarget !== null &&
+      row === enPassantTarget.row &&
+      col === enPassantTarget.col &&
+      board[row][col] === "" &&
+      Math.abs(col - fromCol) === 1;
+
+    // Flyt brikken
     board[row][col] = selectedPiece;
     board[fromRow][fromCol] = "";
 
-    // Flyt tårnet ved rokade
+    // Fjern den bonde, der bliver slået en passant
+    if (isEnPassantMove && enPassantPawn !== null) {
+      board[enPassantPawn.row][enPassantPawn.col] = "";
+    }
+
+    // En passant gælder kun ét træk.
+    // Gem en ny mulighed, hvis denne bonde gik to felter.
+    if (
+      (selectedPiece === "♙" || selectedPiece === "♟") &&
+      Math.abs(row - fromRow) === 2
+    ) {
+      enPassantTarget = {
+        row: (fromRow + row) / 2,
+        col: col,
+      };
+
+      enPassantPawn = {
+        row: row,
+        col: col,
+      };
+    } else {
+      enPassantTarget = null;
+      enPassantPawn = null;
+    }
+
+    // =====================================
+    // FLYT TÅRNET VED ROKADE
+    // =====================================
+
     if (selectedPiece === "♔" && fromRow === 7 && fromCol === 4) {
+      // Kort rokade
       if (col === 6) {
         board[7][5] = board[7][7];
         board[7][7] = "";
       }
 
+      // Lang rokade
       if (col === 2) {
         board[7][3] = board[7][0];
         board[7][0] = "";
@@ -133,19 +182,23 @@ function squareClicked(row, col) {
     }
 
     if (selectedPiece === "♚" && fromRow === 0 && fromCol === 4) {
+      // Kort rokade
       if (col === 6) {
         board[0][5] = board[0][7];
         board[0][7] = "";
       }
 
+      // Lang rokade
       if (col === 2) {
         board[0][3] = board[0][0];
         board[0][0] = "";
       }
     }
-    
 
-    // Bondeforfremmelse
+    // =====================================
+    // BONDEFORFREMMELSE
+    // =====================================
+
     if (selectedPiece === "♙" && row === 0) {
       const choice = prompt(
         "Vælg brik: D = Dronning, T = Tårn, L = Løber, S = Springer",
@@ -186,6 +239,10 @@ function squareClicked(row, col) {
       // Fortryd trækket
       restoreBoard(oldBoard);
 
+      // Gendan også en passant
+      enPassantTarget = oldEnPassantTarget;
+      enPassantPawn = oldEnPassantPawn;
+
       alert("Du må ikke sætte din egen konge i skak!");
     } else {
       changeTurn();
@@ -218,6 +275,7 @@ function squareClicked(row, col) {
 
 function isLegalMove(fromRow, fromCol, toRow, toCol) {
   const piece = board[fromRow][fromCol];
+
   if (fromRow === toRow && fromCol === toCol) {
     return false;
   }
@@ -303,6 +361,27 @@ function isLegalPawnMove(fromRow, fromCol, toRow, toCol) {
     isWhitePiece(piece) !== isWhitePiece(targetPiece)
   ) {
     return true;
+  }
+
+  // =====================================
+  // EN PASSANT
+  // =====================================
+
+  if (
+    Math.abs(toCol - fromCol) === 1 &&
+    toRow === fromRow + direction &&
+    targetPiece === "" &&
+    enPassantTarget !== null &&
+    enPassantTarget.row === toRow &&
+    enPassantTarget.col === toCol &&
+    enPassantPawn !== null &&
+    enPassantPawn.row === fromRow &&
+    enPassantPawn.col === toCol
+  ) {
+    const capturedPawn = board[enPassantPawn.row][enPassantPawn.col];
+
+    // Der skal stå en modstanders bonde ved siden af
+    return capturedPawn === (piece === "♙" ? "♟" : "♙");
   }
 
   return false;
@@ -412,6 +491,10 @@ function isLegalKingMove(fromRow, fromCol, toRow, toCol) {
     !(rowDifference === 0 && colDifference === 0)
   );
 }
+
+// =====================================
+// ROKADE
+// =====================================
 
 function isLegalCastle(fromRow, fromCol, toRow, toCol) {
   // HVID
@@ -623,7 +706,7 @@ function isKingInCheck(color) {
 }
 
 // =====================================
-// ANGREBER EN BRik ET FELT?
+// ANGREBER EN BRIK ET FELT?
 // =====================================
 
 function isAttackingSquare(fromRow, fromCol, toRow, toCol) {
@@ -683,7 +766,7 @@ function restoreBoard(oldBoard) {
 }
 
 // =====================================
-// GENDAN BRÆTTET
+// FIND LOVLIGE TRÆK
 // =====================================
 
 function hasLegalMove(color) {
@@ -725,8 +808,21 @@ function hasLegalMove(color) {
           const oldBoard = copyBoard();
 
           // Lav forsøgs-trækket
+          const isEnPassantMove =
+            (piece === "♙" || piece === "♟") &&
+            enPassantTarget !== null &&
+            toRow === enPassantTarget.row &&
+            toCol === enPassantTarget.col &&
+            board[toRow][toCol] === "" &&
+            Math.abs(toCol - fromCol) === 1;
+
           board[toRow][toCol] = piece;
           board[fromRow][fromCol] = "";
+
+          // Fjern bonde ved en passant i forsøgs-trækket
+          if (isEnPassantMove && enPassantPawn !== null) {
+            board[enPassantPawn.row][enPassantPawn.col] = "";
+          }
 
           // Se om kongen stadig er i skak
           const stillInCheck = isKingInCheck(color);
@@ -748,8 +844,9 @@ function hasLegalMove(color) {
 }
 
 // =====================================
-// Checkmate
+// CHECKMATE
 // =====================================
+
 function isCheckmate(color) {
   return isKingInCheck(color) && !hasLegalMove(color);
 }
@@ -781,7 +878,7 @@ function isBlackPiece(piece) {
 }
 
 // =====================================
-// MARKER VALGT BRik
+// MARKER VALGT BRIK
 // =====================================
 
 function highlightSelectedSquare() {
