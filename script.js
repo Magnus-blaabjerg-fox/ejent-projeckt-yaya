@@ -1,5 +1,12 @@
 const chessboard = document.getElementById("chessboard");
 const turnText = document.getElementById("turn");
+const restartButton = document.getElementById("restartButton");
+const gameOver = document.getElementById("gameOver");
+const winnerText = document.getElementById("winnerText");
+const playAgainButton = document.getElementById("playAgainButton");
+
+let whiteScorePoints = 0;
+let blackScorePoints = 0;
 
 let selectedSquare = null;
 let currentPlayer = "white";
@@ -134,6 +141,35 @@ function squareClicked(row, col) {
       board[row][col] === "" &&
       Math.abs(col - fromCol) === 1;
 
+    // Tæl den brik, der bliver slået
+    if (board[row][col] !== "") {
+      const capturedPiece = board[row][col];
+
+      const pieceValues = {
+        "♙": 1,
+        "♟": 1,
+        "♘": 3,
+        "♞": 3,
+        "♗": 3,
+        "♝": 3,
+        "♖": 5,
+        "♜": 5,
+        "♕": 9,
+        "♛": 9,
+      };
+
+      const points = pieceValues[capturedPiece] || 0;
+
+      if (currentPlayer === "white") {
+        whiteScorePoints += points;
+        whiteScore.textContent = whiteScorePoints;
+      }
+
+      if (currentPlayer === "black") {
+        blackScorePoints += points;
+        blackScore.textContent = blackScorePoints;
+      }
+    }
     // Flyt brikken
     board[row][col] = selectedPiece;
     board[fromRow][fromCol] = "";
@@ -251,11 +287,13 @@ function squareClicked(row, col) {
       const opponent = currentPlayer;
 
       if (isCheckmate(opponent)) {
+        const winner = currentPlayer === "white" ? "HVID" : "SORT";
+
         turnText.textContent = "SKAKMAT!";
 
-        alert(
-          "SKAKMAT! " + (opponent === "white" ? "Sort" : "Hvid") + " vinder!",
-        );
+        winnerText.textContent = "SKAKMAT! " + winner + " VINDER! 🏆";
+
+        gameOver.style.display = "block";
       } else if (isKingInCheck(opponent)) {
         turnText.textContent += " - SKAK!";
 
@@ -923,5 +961,12 @@ function highlightPossibleMoves() {
 // =====================================
 // START SPILLET
 // =====================================
+
+function restartGame() {
+  location.reload();
+}
+
+restartButton.addEventListener("click", restartGame);
+playAgainButton.addEventListener("click", restartGame);
 
 createBoard();

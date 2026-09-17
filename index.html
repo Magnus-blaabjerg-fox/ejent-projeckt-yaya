@@ -4,14 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chess</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <h1>♟ Mit Chess Spil ♟</h1>
 
     <p id="turn">Hvids tur</p>
 
+    <div id="score">
+    <p>Hvid har slået: <span id="whiteScore">0</span></p>
+    <p>Sort har slået: <span id="blackScore">0</span></p>
+</div>
+
     <div id="chessboard"></div>
+
+    <button id="restartButton">Start forfra</button>
+
+    <div id="gameOver" class="game-over">
+      <h2 id="winnerText"></h2>
+      <button id="playAgainButton">Spil igen</button>
+    </div>
 
     <script src="script.js"></script>
   </body>

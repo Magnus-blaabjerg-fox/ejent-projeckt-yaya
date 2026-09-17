@@ -53,3 +53,49 @@ body {
 .possible-move {
     box-shadow: inset 0 0 0 6px limegreen;
 }
+
+#restartButton {
+    padding: 12px 25px;
+    font-size: 18px;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    background-color: white;
+    color: #222;
+}
+
+#restartButton:hover {
+    background-color: #ddd;
+}
+.game-over {
+    display: none;
+    text-align: center;
+    margin-top: 20px;
+    padding: 25px;
+    border-radius: 12px;
+    background-color: white;
+}
+
+.game-over h2 {
+    font-size: 30px;
+    margin-bottom: 15px;
+}
+
+#playAgainButton {
+    padding: 12px 25px;
+    font-size: 18px;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    background-color: #ddd;
+}
+
+#playAgainButton:hover {
+    background-color: #bbb;
+}
+
+#score {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+}
